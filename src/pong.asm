@@ -59,13 +59,13 @@ ClearMem
 	STA LifePlayer1
 
 SetColors
-	LDA #$44
-	STA COLUBK	; background color
-	LDA #$21	; defining PlayField size (D0) and Ball size (D4, D5)
+	LDA #$2A
+	STA COLUBK   ; background color (verde médio)
+	LDA #$21    ; defining PlayField size (D0) and Ball size (D4, D5)
 	STA CTRLPF
 	LDA #$10
 	STA PF0
-	LDA #$10	; ball color
+	LDA #$0E    ; ball color (branco)
 	STA COLUPF
 
 MainLoop
@@ -268,4 +268,6 @@ OverScanWait
 ; to put the binary data that we labeled "Start" at the location we established
 ; with org.  And then we do it again for $FFFE/$FFFF, which is for a special
 ; event called a BRK which you don't have to worry about now.
-c
+	org $FFFC
+	.word Start
+	.word Start

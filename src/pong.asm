@@ -21,6 +21,8 @@ Player0ActualSize = $90
 Player1ActualSize = $91
 LifePlayer0 = $92
 LifePlayer1 = $93
+CurrentSpeed = $94
+CollisionTimer = $95
 
 Start			; init stuff:
 	SEI		; no interruptions
@@ -52,23 +54,36 @@ ClearMem
 	STA Player0Size		; draw controller
 	STA Player1Size
 	LDA #30
-	STA Player0ActualSize	; true size
+	STA Player0ActualSize
+	LDA #34		; true size
 	STA Player1ActualSize
 	LDA #30
 	STA LifePlayer0
 	STA LifePlayer1
+	LDA #$10              ; Velocidade Inicial (1 pixel por frame)
+	STA CurrentSpeed      ; Guarda na memória
 
 SetColors
-	LDA #$2A
-	STA COLUBK   ; background color (verde médio)
+	LDA #$C6      
+	STA COLUBK   ; background color (verde escuro clássico)
 	LDA #$21    ; defining PlayField size (D0) and Ball size (D4, D5)
 	STA CTRLPF
 	LDA #$10
 	STA PF0
 	LDA #$0E    ; ball color (branco)
 	STA COLUPF
+	LDA #$44       ; Cor avermelhada
+    STA COLUP0     ; Define cor do Player 0 (Esquerda)
+    LDA #$86       ; Cor azulada
+    STA COLUP1     ; Define cor do Player 1 (Direita)
 
 MainLoop
+
+	; --- NOVO: SILENCIA O SOM DO FRAME ANTERIOR ---
+	LDA #0
+	STA AUDV0    ; Volume Zero (Cala a boca)
+	; ----------------------------------------------
+
 	LDA	#2	; VSYNC D1 = 1 --> turn off electron beam,
 			;  position it at the top of the screen
 	STA VSYNC	; VSYNC must be sent for at least 3 scanlines
@@ -129,34 +144,122 @@ SkipMoveDown1
 	DEC Player1Pos
 	DEC Player1Pos
 SkipMoveUp1
-	;check collision: Player0 and Ball
+	;check collision: Player0 and Ball (Bateu na Direita -> Vai pra Esquerda)
 	LDA #%1000000
 	BIT CXP0FB
 	BEQ NoCollisionP0Ball
-	LDA #$10	; ball must go left
-	STA BallLeftRight
+
+	; --- SOM DE RAQUETADA (PING) ---
+	LDA #4       ; Timbre (Puro)
+	STA AUDC0
+	LDA #4       ; Frequencia (Agudo)
+	STA AUDF0
+	LDA #8       ; Volume (Medio)
+	STA AUDV0
+	
+	; AUMENTAR VELOCIDADE
+	CLC
+	LDA CurrentSpeed    ; Pega velocidade atual
+	ADC #$10            ; Soma +1 de velocidade
+	CMP #$50            ; Chegou no limite (velocidade 5)?
+	BCS SkipSpeedIncP0  ; Se já é 50 ou mais, não aumenta
+	STA CurrentSpeed    ; Salva nova velocidade
+SkipSpeedIncP0
+	LDA CurrentSpeed    ; Carrega a velocidade (positiva = Esquerda)
+	STA BallLeftRight   ; Aplica na bola
 NoCollisionP0Ball
-	;check collision: Player1 and Ball
+
+
+	;check collision: Player1 and Ball (Bateu na Esquerda -> Vai pra Direita)
 	LDA #%1000000
 	BIT CXP1FB
 	BEQ NoCollisionP1Ball
-	LDA #$F0	; ball must go right
+
+	; --- SOM DE RAQUETADA (PING) ---
+	LDA #4       ; Timbre (Puro)
+	STA AUDC0
+	LDA #4       ; Frequencia (Agudo)
+	STA AUDF0
+	LDA #8       ; Volume (Medio)
+	STA AUDV0
+
+	; AUMENTAR VELOCIDADE
+	CLC
+	LDA CurrentSpeed
+	ADC #$10
+	CMP #$50
+	BCS SkipSpeedIncP1
+	STA CurrentSpeed
+SkipSpeedIncP1
+	LDA #0
+	SEC                 ; Prepara subtração
+	SBC CurrentSpeed    ; Faz (0 - Velocidade) para ficar Negativo (Direita)
 	STA BallLeftRight
 NoCollisionP1Ball
 	;check collision: Ball and PlayField
-	LDA #%10000000
+	LDA CollisionTimer      ; Verifica se tem "Modo Fantasma"
+	BNE DecreaseTimer       ; Se tiver (>0), diminui o tempo e IGNORA a colisão
+	
+	LDA #%10000000          ; Se não tiver, vida normal: Checa colisão
 	BIT CXBLPF
 	BEQ NoCollisionBallPF
-	STA CXCLR	; clear all collisions
-	LDX #$10
-	CPX BallLeftRight	; check ball direction and decide who fail and will suffer punishment
-	BEQ Player1Penalty
+	
+	; --- GOL DETECTADO ---
+	STA CXCLR	            ; Limpa colisões
+	LDA BallLeftRight      
+	BPL Player1Penalty     
+	BMI Player0Penalty     
+
+DecreaseTimer
+	DEC CollisionTimer      ; Diminui o tempo de invencibilidade (30, 29, 28...)
+	JMP NoCollisionBallPF   ; Segue o jogo sem tirar vida!
 Player0Penalty
+; --- SOM DE GOL (BOOM) ---
+	LDA #8       ; Timbre (Ruído Branco/Explosão)
+	STA AUDC0
+	LDA #15      ; Frequencia (Grave)
+	STA AUDF0
+	LDA #15      ; Volume (Maximo)
+	STA AUDV0
+
+	LDA #30                 ; <--- ATIVA MODO FANTASMA: 60 frames (1 seg) de invencibilidade
+	STA CollisionTimer      ; Isso deixa a bola sair da parede sem morrer de novo!
+	
+	LDA #$10 
+	STA CurrentSpeed      
+	STA BallLeftRight       ; Reseta velocidade para Lento
+	
+	LDA #100                ; Põe no MEIO da altura (Segurança)
+	STA YPosBall          
+	
 	DEC Player0ActualSize
 	DEC LifePlayer0
 	BEQ EndGame
 	JMP NoCollisionBallPF
+
 Player1Penalty
+; --- SOM DE GOL (BOOM) ---
+	LDA #8       ; Timbre (Ruído Branco/Explosão)
+	STA AUDC0
+	LDA #15      ; Frequencia (Grave)
+	STA AUDF0
+	LDA #15      ; Volume (Maximo)
+	STA AUDV0
+
+	LDA #30                 ; <--- ATIVA MODO FANTASMA
+	STA CollisionTimer      
+	
+	LDA #$10 
+	STA CurrentSpeed      
+	
+	LDA #0
+	SEC
+	SBC CurrentSpeed      
+	STA BallLeftRight       ; Reseta velocidade para Lento
+	
+	LDA #100                ; Põe no MEIO da altura
+	STA YPosBall
+	
 	DEC Player1ActualSize
 	DEC LifePlayer1
 	BEQ EndGame
@@ -164,27 +267,67 @@ Player1Penalty
 NoCollisionBallPF
 	STA CXCLR	; clear all collisions
 	JMP WaitVBlankEnd
+
 EndGame
+	; --- SOM DE GAME OVER ---
+	LDA #3       ; Timbre (Polifonia estranha)
+	STA AUDC0
+	LDA #20      ; Frequencia (Bem grave)
+	STA AUDF0
+	LDA #15      ; Volume
+	STA AUDV0
+
+	; --- DELAY LONGO (2 a 3 segundos) ---
+	LDY #150     ; Contador Externo (Repete 150 vezes o loop de dentro)
+DelayOuter
+	LDX #250     ; Contador Interno (Espera ~1 frame)
+DelayInner
+	STA WSYNC    ; Espera desenhar uma linha
+	DEX          ; X--
+	BNE DelayInner
+	
+	DEY          ; Y--
+	BNE DelayOuter ; Se Y não zerou, roda o loop do X tudo de novo
+	
 	JMP Start
 
 WaitVBlankEnd
-	LDA INTIM	; load timer
-	BNE WaitVBlankEnd	; killing time if the timer != 0
-	; 37 VBLANK scanlines has gone
-	STA WSYNC
-	STA RESP1
+	LDA INTIM	        ; Carrega o temporizador
+	BNE WaitVBlankEnd	; Espera o tempo acabar
 	
-	LDY #191	; count scanlines
-	STA WSYNC	; wait for scanline end, we do not wanna begin at the middle of one
-	STA VBLANK	; VBLANK D1 = 0
+	STA WSYNC           ; Sincroniza linha
 
-	LDA BallLeftRight	; speed
-	STA HMBL
-	LDA #$00			; speed
-	STA GRP0			; D0 to D7 are considered
-	STA GRP1
-	STA WSYNC
-	STA HMOVE	; strobe register like WSYNC
+	; Posicionamento horizontal dos jogadores e bola
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+	STA RESP1           ; Posição Player 1
+
+    ; --- Mover Player 0 (Vermelho) ---
+    LDX #11              ; Ajuste fino da posição
+PosLoop
+    DEX
+    BNE PosLoop
+	STA RESP0           ; Posição Player 0
+
+	; Movimento fino e bola
+	LDA BallLeftRight   ; Velocidade da bola
+	STA HMBL            ; Aplica na bola
+    
+	LDA #60            ; Zera movimento extra P0
+	STA HMP0
+	LDA #00            ; Zera movimento extra P1
+	STA HMP1
+    
+	STA WSYNC           ; Nova linha
+	STA HMOVE           ; Aplica movimento
+    
+    LDA #0
+    STA VBLANK          ; Liga a tela
+    
+    LDY #192            ; Define altura da tela
 
 ScanLoop
 	STA WSYNC
@@ -218,7 +361,7 @@ ActivePlayer0Size
 	LDA Player0ActualSize
 	STA Player0Size
 DrawingPlayer0
-	LDA #2
+	LDA #$AA
 	STA GRP0
 	DEC Player0Size
 OutPlayer0
@@ -235,7 +378,7 @@ ActivePlayer1Size
 	LDA Player1ActualSize
 	STA Player1Size
 DrawingPlayer1
-	LDA #2
+	LDA #$AA
 	STA GRP1
 	DEC Player1Size
 OutPlayer1

@@ -1,33 +1,139 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Montar com DASM",
-      "type": "shell",
-      "command": "${workspaceFolder}/dasm/dasm.exe",
-      "args": [
-        "${file}",
-        "-f3",
-        "-v0",
-        "-I${workspaceFolder}/dasm/machines/atari2600",
-        "-o${workspaceFolder}/bin/${fileBasenameNoExtension}.bin"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Executar no Stella",
-      "type": "shell",
-      "command": "${workspaceFolder}/Stella/Stella-7.0c/Stella.exe",
-      "args": ["${workspaceFolder}/bin/${fileBasenameNoExtension}.bin"],
-      "group": {
-        "kind": "none",
-        "isDefault": false
-      },
-      "problemMatcher": []
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Montar com DASM",
+			"type": "shell",
+			"command": "cmd.exe",
+			"args": [
+				"/c",
+				"\"C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe\" \"${file}\" -f3 -v0 -I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\" -o\"C:/Users/LENOVO/Downloads/JG/bin/${fileBasenameNoExtension}.bin\""
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Executar no Stella",
+			"type": "shell",
+			"command": "cmd.exe",
+			"args": [
+				"/c",
+				"\"C:/Users/LENOVO/Downloads/JG/Stella/Stella-7.0c/Stella.exe\" \"C:/Users/LENOVO/Downloads/JG/bin/${fileBasenameNoExtension}.bin\""
+			],
+			"group": {
+				"kind": "none",
+				"isDefault": false
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Montar Tennis_clean.asm com DASM",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"C:/Users/LENOVO/Downloads/JG/src/Tennis_clean.asm",
+				"-f3",
+				"-v0",
+				"-I",
+				"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600",
+				"-o",
+				"C:/Users/LENOVO/Downloads/JG/bin/Tennis_clean.bin"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Montar Tennis_clean.asm com DASM (com aspas nos paths)",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"\"C:/Users/LENOVO/Downloads/JG/src/Tennis_clean.asm\"",
+				"-f3",
+				"-v0",
+				"-I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\"",
+				"-o\"C:/Users/LENOVO/Downloads/JG/bin/Tennis_clean.bin\""
+			],
+			"group": "build"
+		},
+		{
+			"label": "Montar Tennis_clean.asm FINAL",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"\"C:/Users/LENOVO/Downloads/JG/src/Tennis_clean.asm\"",
+				"-f3",
+				"-v0",
+				"-I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\"",
+				"-o\"C:/Users/LENOVO/Downloads/JG/bin/Tennis_clean.bin\""
+			],
+			"group": "build"
+		},
+		{
+			"label": "Montar Tennis_clean.asm FINAL (linha em branco)",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"\"C:/Users/LENOVO/Downloads/JG/src/Tennis_clean.asm\"",
+				"-f3",
+				"-v0",
+				"-I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\"",
+				"-o\"C:/Users/LENOVO/Downloads/JG/bin/Tennis_clean.bin\""
+			],
+			"group": "build"
+		},
+		{
+			"label": "Montar Tennis_clean.asm FINAL (truncado)",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"\"C:/Users/LENOVO/Downloads/JG/src/Tennis_clean.asm\"",
+				"-f3",
+				"-v0",
+				"-I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\"",
+				"-o\"C:/Users/LENOVO/Downloads/JG/bin/Tennis_clean.bin\""
+			],
+			"group": "build"
+		},
+		{
+			"label": "Montar Tennis.asm FINAL (após limpeza)",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"\"C:/Users/LENOVO/Downloads/JG/src/Tennis.asm\"",
+				"-f3",
+				"-v0",
+				"-I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\"",
+				"-o\"C:/Users/LENOVO/Downloads/JG/bin/Tennis.bin\""
+			],
+			"group": "build"
+		},
+		{
+			"label": "Montar Tennis.asm FINAL (só vetor de reset após dados)",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"\"C:/Users/LENOVO/Downloads/JG/src/Tennis.asm\"",
+				"-f3",
+				"-v0",
+				"-I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\"",
+				"-o\"C:/Users/LENOVO/Downloads/JG/bin/Tennis.bin\""
+			],
+			"group": "build"
+		},
+		{
+			"label": "Montar Tennis.asm FINAL (limpeza garantida)",
+			"type": "shell",
+			"command": "C:/Users/LENOVO/Downloads/JG/dasm/dasm.exe",
+			"args": [
+				"\"C:/Users/LENOVO/Downloads/JG/src/Tennis.asm\"",
+				"-f3",
+				"-v0",
+				"-I\"C:/Users/LENOVO/Downloads/JG/dasm/machines/atari2600\"",
+				"-o\"C:/Users/LENOVO/Downloads/JG/bin/Tennis.bin\""
+			],
+			"group": "build"
+		}
+	]
 }

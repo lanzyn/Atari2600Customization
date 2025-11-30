@@ -1,9 +1,8 @@
-; Disassembly of Tennis.bin
-; Disassembled Sun Nov 30 14:55:55 2025
-; Using DiStella v3.02-SNAPSHOT
-;
-; Command Line: C:\Users\LENOVO\Downloads\distella-master\distella-master\DiStella.EXE Tennis.bin 
-;
+
+processor 6502
+INCLUDE "vcs.h"
+INCLUDE "macro.h"
+
 
 VSYNC   =  $00
 VBLANK  =  $01
@@ -43,77 +42,30 @@ TIM64T  =  $0296
        ORG $F000
 
 START:
-       SEI            ; Desabilita interrupções
-       CLD            ; Limpa o flag decimal
-       LDX    #$00    ; Zera X
-; Loop de inicialização dos registradores VSYNC,X
-LF004: LDY    #$00    ; Zera Y
-LF006: STY    VSYNC,X ; Zera VSYNC,X (limpa registradores de vídeo)
-       TXS            ; Inicializa a stack pointer
-       INX            ; Incrementa X
-       BNE    LF006   ; Repete até X=0 (passa por todos os registradores)
-       STX    AUDV0   ; Zera volume de áudio
-       LDA    #$11    ; Valor de configuração do playfield
-       STA    CTRLPF  ; Configura o playfield
-       JSR    LF5E7   ; Chama rotina de inicialização de variáveis
+       SEI            
+       CLD            
+       LDX    #$00    
+LF004: LDY    #$00    
+LF006: STY    VSYNC,X 
+       TXS            
+       INX            
+       BNE    LF006   
+       STA    AUDC0   
+       STA    AUDF0   
+       RTS
 
-; Início da lógica principal do jogo
-LF015: LDA    #$36    ; Carrega valor para rotina de manipulação
-       LDX    #$02    ; X=2
-       JSR    LF4A3   ; Chama rotina de manipulação de dados
-       LDA    #$7D    ; Carrega outro valor
-       JSR    LF4A3   ; Chama rotina de manipulação de dados
-       LDA    $90     ; Carrega valor de variável
-       CLC            ; Limpa carry
-       ADC    #$08    ; Soma 8
-       JSR    LF4A3   ; Chama rotina de manipulação de dados
-       LDX    #$05    ; X=5
-
-; Loop de leitura dos switches e configuração de cor de fundo
-LF02B: LDA    SWCHB   ; Lê switches do console
-       AND    #$08    ; Testa bit específico (ex: dificuldade)
-       BNE    LF037   ; Se setado, pula
-       LDA    LF757,X ; Carrega valor de tabela
-       BNE    LF03A   ; Se não zero, pula
-LF037: LDA    LF751,X ; Carrega outro valor de tabela
-LF03A: EOR    $82     ; Faz XOR com variável
-       AND    $83     ; Faz AND com outra variável
-       STA    $BB,X   ; Salva resultado em tabela
-       DEX            ; Decrementa X
-       BPL    LF02B   ; Repete para X >= 0
-       STA    COLUBK  ; Configura cor de fundo
-       LDX    $86     ; Carrega X de variável
-       LDA    LF72D,X ; Carrega valor de tabela
-       STA    $B0     ; Salva em variável
-       LDA    LF73F,X ; Carrega outro valor de tabela
-       STA    $B2     ; Salva em variável
-
-; Espera sincronização de tempo (timer INTIM)
-LF051: LDA    INTIM   ; Lê timer
-       BNE    LF051   ; Espera zerar
-       STA    WSYNC   ; Sincroniza scanline
-       STA    HMOVE   ; Zera movimento horizontal
-       STA    VBLANK  ; Sai do blanking vertical
-       LDX    $87     ; Carrega X de variável
-       LDA    LF72D,X ; Carrega valor de tabela
-       STA    $AC     ; Salva em variável
-       LDA    LF73F,X ; Carrega outro valor de tabela
-       STA    $AE     ; Salva em variável
-       STA    HMCLR   ; Limpa movimento horizontal
-       LDX    #$01    ; X=1
-       LDA    $D1     ; Lê variável
-       BNE    LF072   ; Se diferente de zero, pula
-       LDX    #$04    ; X=4
-LF072: JSR    LF4FC   ; Chama rotina de manipulação de sprites
-       LDX    $D0     ; Lê variável
-       BEQ    LF082   ; Se zero, pula
-       LDA    $BE     ; Troca valores de variáveis (swap)
-       LDY    $BD     ;
-       STA    $BD     ;
-       STY    $BE     ;
-       DEX            ; Decrementa X
-LF082: JSR    LF618   ; Chama rotina de atualização de sprites/jogo
-       BEQ    LF0C0   ; Se resultado zero, pula
+; --- Fim do código executável ---
+; Bloco de dados inicia aqui
+LF649: .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$30,$78,$48,$C8,$48,$78
+       LDX    $D0     
+       BEQ    LF082   
+       LDA    $BE     
+       LDY    $BD     
+       STA    $BD     
+       STY    $BE     
+       DEX            
+LF082: JSR    LF618   
+       BEQ    LF0C0   
 LF087: STA    WSYNC   
        STA    HMOVE   
        STY    COLUPF  
@@ -677,7 +629,8 @@ LF497: STA    ENABL,X
 LF49B: DEY            
        BPL    LF49B   
        STA    PF2,X   
-       RTS            
+
+RTS
 
 LF4A1: LDX    #$FE    
 LF4A3: CLC            
@@ -883,36 +836,10 @@ LF607: STY    $8F
        AND    #$01    
        STA    $D0     
        LDA    #$02    
-       STA    AUDC0   
-       STA    AUDF0   
-       RTS            
 
-LF618: STA    WSYNC   
-       STA    HMOVE   
-       LDA    $BD,X   
-       STA    COLUP0  
-       STA    COLUP1  
-       LDA    $98,X   
-       STA    $B5     
-       LDA    $B8,X   
-       STA    REFP0   
-       STA    REFP1   
-       LDY    $9C,X   
-       STY    $A4     
-       DEY            
-       STY    $A8     
-       LDY    $9E,X   
-       STY    $A6     
-       DEY            
-       STY    $AA     
-       LDA    LF708,X 
-       STA    $BA     
-       LDA    $9A,X   
-       STA    WSYNC   
-       STA    HMOVE   
-       JSR    LF4A1   
-       RTS            
 
+; --- Fim do código executável ---
+; Bloco de dados inicia aqui
 LF649: .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$30,$78,$48,$C8,$48,$78
        .byte $30,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$06,$0F,$09,$F9,$09
        .byte $0F,$06,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
@@ -950,7 +877,6 @@ LF75D: .byte $0C,$06,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$3C,$66,$66
        .byte $F0
 LF7FE: .byte $40,$80
 
-       ORG $FFFC
-       .word START
-
-       END START ; Garante que o DASM reconheça o ponto de entrada e finalize o binário
+ORG $FFFC
+.word START
+.word START

@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Montar com DASM",
+      "type": "shell",
+      "command": "${workspaceFolder}/dasm/dasm.exe",
+      "args": [
+        "${file}",
+        "-f3",
+        "-v0",
+        "-I${workspaceFolder}/dasm/machines/atari2600",
+        "-o${workspaceFolder}/bin/${fileBasenameNoExtension}.bin"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Executar no Stella",
+      "type": "shell",
+      "command": "${workspaceFolder}/Stella/Stella-7.0c/Stella.exe",
+      "args": ["${workspaceFolder}/bin/${fileBasenameNoExtension}.bin"],
+      "group": {
+        "kind": "none",
+        "isDefault": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}

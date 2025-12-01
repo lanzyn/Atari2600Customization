@@ -164,6 +164,7 @@ SkipMoveUp1
 	CMP #$50            ; Chegou no limite (velocidade 5)?
 	BCS SkipSpeedIncP0  ; Se já é 50 ou mais, não aumenta
 	STA CurrentSpeed    ; Salva nova velocidade
+
 SkipSpeedIncP0
 	LDA CurrentSpeed    ; Carrega a velocidade (positiva = Esquerda)
 	STA BallLeftRight   ; Aplica na bola
@@ -204,7 +205,7 @@ NoCollisionP1Ball
 	BIT CXBLPF
 	BEQ NoCollisionBallPF
 	
-	; --- GOL DETECTADO ---
+	; --- PONTO DETECTADO ---
 	STA CXCLR	            ; Limpa colisões
 	LDA BallLeftRight      
 	BPL Player1Penalty     
@@ -214,7 +215,7 @@ DecreaseTimer
 	DEC CollisionTimer      ; Diminui o tempo de invencibilidade (30, 29, 28...)
 	JMP NoCollisionBallPF   ; Segue o jogo sem tirar vida!
 Player0Penalty
-; --- SOM DE GOL (BOOM) ---
+; --- SOM DE PONTO (BOOM) ---
 	LDA #8       ; Timbre (Ruído Branco/Explosão)
 	STA AUDC0
 	LDA #15      ; Frequencia (Grave)
@@ -238,7 +239,7 @@ Player0Penalty
 	JMP NoCollisionBallPF
 
 Player1Penalty
-; --- SOM DE GOL (BOOM) ---
+; --- SOM DE PONTO (BOOM) ---
 	LDA #8       ; Timbre (Ruído Branco/Explosão)
 	STA AUDC0
 	LDA #15      ; Frequencia (Grave)

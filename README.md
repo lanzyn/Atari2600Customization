@@ -4,7 +4,6 @@ Este repositório contém os projetos desenvolvidos para a disciplina de Desenvo
 
 ## Sobre o Projeto
 
-- **Disciplina:** Desenvolvimento de Jogos Clássicos
 - **Plataforma:** Atari 2600
 - **Linguagem:** Assembly 6502
 - **Ferramentas:** DASM (assembler), Stella (emulador)
